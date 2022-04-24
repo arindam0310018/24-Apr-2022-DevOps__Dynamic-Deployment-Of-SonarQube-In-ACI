@@ -1,0 +1,130 @@
+trigger:
+  none
+
+######################
+#DECLARE PARAMETERS:-
+######################
+parameters:
+- name: SubscriptionID
+  displayName: Please Provide the Subscription ID:-
+  type: object
+  default: 210e66cb-55cf-424e-8daa-6cad804ab604
+
+- name: ServiceConnection
+  displayName: Please Provide the Service Connection Name:-
+  default: amcloud-cicd-service-connection
+  values:
+  - amcloud-cicd-service-connection
+
+- name: RGName
+  displayName: Please Provide the Name of the Resource Group:-
+  type: object
+  default: DemoRGSonarQube
+
+- name: RGLocation
+  displayName: Please Provide Location of Resource Group:-
+  default: WestEurope
+  values:
+  - WestEurope
+
+- name: validateIfRGExists
+  displayName: Does the provided Resource Group Exists or do we create ?
+  default: Existing
+  values:
+  - Existing
+  - New
+
+- name: ACIName
+  displayName: Please Provide the Name of the Azure Container Instance:-
+  type: object
+  default: am-poc-sonarqube-aci
+
+######################
+#DECLARE VARIABLES:-
+######################
+variables:
+  Artifact: AM
+  cpu: 2 
+  memory: 3.5
+  port: 9000
+  
+#########################
+# Declare Build Agents:-
+#########################
+pool:
+  vmImage: windows-latest
+
+###################
+# Declare Stages:-
+###################
+stages:
+
+- stage: VALIDATE_SELECTION_EXISTING
+  condition: |
+     and(eq('${{ parameters.validateIfRGExists }}', 'Existing'), 
+       eq(variables['build.sourceBranch'], 'refs/heads/main')) 
+  jobs:
+  - job: IF_RG_EXISTS_DEPLOY_SONARQUBE 
+    displayName: IF RG EXISTS DEPLOY SONARQUBE
+    steps:
+    - task: AzureCLI@2
+      displayName: CHECK RG AND DEPLOY SONARQUBE
+      inputs:
+        azureSubscription: ${{ parameters.ServiceConnection }}
+        scriptType: ps
+        scriptLocation: inlineScript
+        inlineScript: |
+          az --version
+          az account set --subscription ${{ parameters.SubscriptionID }}
+          az account show  
+          $i = az group exists -n ${{ parameters.RGName }}
+          if ($i -eq "true") {
+          $j = az container list --query "[?contains(name, '${{ parameters.ACIName }}')].[provisioningState]" -o tsv
+            if ($j -eq "Succeeded") {
+            echo "##########################################################################################################################################"
+            echo "${{ parameters.ACIName }} CONTAINER INSTANCE EXISTS IN THE ${{ parameters.RGName }} RESOURCE GROUP. CANNOT PROCEED WITH THE DEPLOYMENT"
+            echo "##########################################################################################################################################"  
+              }
+            else {   
+            az container create -g ${{ parameters.RGName }} --name ${{ parameters.ACIName }} --image sonarqube --ports $(port) --dns-name-label ${{ parameters.ACIName }} --cpu $(cpu) --memory $(memory)
+              }
+            }
+          else {
+          az group create -l ${{ parameters.RGLocation }} -n ${{ parameters.RGName }} 
+          az container create -g ${{ parameters.RGName }} --name ${{ parameters.ACIName }} --image sonarqube --ports $(port) --dns-name-label ${{ parameters.ACIName }} --cpu $(cpu) --memory $(memory)    
+            }
+
+- stage: VALIDATE_SELECTION_NEW
+  condition: |
+     and(eq('${{ parameters.validateIfRGExists }}', 'New'), 
+       eq(variables['build.sourceBranch'], 'refs/heads/main')) 
+  jobs:
+  - job: CREATE_RG_AND_DEPLOY_SONARQUBE 
+    displayName: CREATE RG AND DEPLOY SONARQUBE
+    steps:
+    - task: AzureCLI@2
+      displayName: CHECK RG AND DEPLOY SONARQUBE
+      inputs:
+        azureSubscription: ${{ parameters.ServiceConnection }}
+        scriptType: ps
+        scriptLocation: inlineScript
+        inlineScript: |
+          az --version
+          az account set --subscription ${{ parameters.SubscriptionID }}
+          az account show  
+          $i = az group exists -n ${{ parameters.RGName }}
+          if ($i -eq "true") { 
+          $j = az container list --query "[?contains(name, '${{ parameters.ACIName }}')].[provisioningState]" -o tsv
+            if ($j -eq "Succeeded") {
+            echo "##########################################################################################################################################"
+            echo "${{ parameters.ACIName }} CONTAINER INSTANCE EXISTS IN THE ${{ parameters.RGName }} RESOURCE GROUP. CANNOT PROCEED WITH THE DEPLOYMENT"
+            echo "##########################################################################################################################################"  
+              }
+            else {   
+            az container create -g ${{ parameters.RGName }} --name ${{ parameters.ACIName }} --image sonarqube --ports $(port) --dns-name-label ${{ parameters.ACIName }} --cpu $(cpu) --memory $(memory)
+              }
+            }             
+          else {
+          az group create -l ${{ parameters.RGLocation }} -n ${{ parameters.RGName }} 
+          az container create -g ${{ parameters.RGName }} --name ${{ parameters.ACIName }} --image sonarqube --ports $(port) --dns-name-label ${{ parameters.ACIName }} --cpu $(cpu) --memory $(memory)    
+            }
