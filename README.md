@@ -4,6 +4,12 @@ Greetings my fellow Technology Advocates and Specialists.
 
 In this Session, I will demonstrate how to __Dynamically Deploy SONARQUBE__ in __AZURE CONTAINER INSTANCE__ using __AZURE DEVOPS PIPELINES__
 
+| __LIVE RECORDED SESSION:-__ |
+| --------- |
+| __LIVE DEMO__ was Recorded as part of my Presentation in __CLOUD LUNCH AND LEARN__ Forum/Platform |
+| Duration of My Demo = __44 Mins 19 Secs__ |
+| [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/0D5gURnxdz8/0.jpg)](https://www.youtube.com/watch?v=0D5gURnxdz8) |
+
 | __REQUIREMENTS:-__ |
 | --------- |
 
@@ -419,3 +425,8 @@ __VALIDATE THE YAML DEPLOYMENT WITH BELOW TEST CASES.__
 | ![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/otw1ymq1vy208uoyb4um.png) |
 | __SonarQube URL:__ http://am-poc-sonarqube-aci.westeurope.azurecontainer.io:9000/ |
 | ![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/girui3gac12mevw6v60l.png) |
+
+
+Hope You Enjoyed the Session!!!
+
+__Stay Safe | Keep Learning | Spread Knowledge__
